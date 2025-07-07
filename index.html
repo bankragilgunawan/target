@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Target Harian</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 15px;
+      background: #f3f4f6;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #4a4a4a;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+      color: #666;
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0 20px;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-primary {
+      background: #4caf50;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #ff9800;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #f44336;
+      color: white;
+    }
+
+    .riwayat {
+      margin-top: 10px;
+    }
+
+    .riwayat-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .riwayat-item {
+      background: white;
+      border: 1px solid #ddd;
+      margin-bottom: 8px;
+      padding: 10px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .saldo-box {
+      background: #e8f5e9;
+      padding: 16px;
+      border: 1px solid #c8e6c9;
+      border-radius: 12px;
+      font-weight: bold;
+      text-align: center;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 20px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    @media (max-width: 500px) {
+      th, td {
+        padding: 8px;
+        font-size: 13px;
+      }
+      .button-group {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h2>📊 Target Harian</h2>
+
+<table>
+  <tr>
+    <th>Besarnya (per hari)</th>
+    <th>X Hari</th>
+    <th>Target</th>
+    <th>Hari Ke</th>
+  </tr>
+  <tr>
+    <td><input type="number" id="besar" placeholder="Contoh: 100000"></td>
+    <td><input type="number" id="hari" placeholder="Contoh: 10" onchange="updateDropdown()"></td>
+    <td><input type="number" id="target" placeholder="Contoh: 1000000"></td>
+    <td>
+      <select id="doneHari">
+        <option value="">-</option>
+      </select>
+    </td>
+  </tr>
+</table>
+
+<div class="button-group">
+  <button class="btn-primary" onclick="simpanDone()">✅ Simpan</button>
+  <button class="btn-secondary" onclick="resetKolom()">🔄 Reset Kolom</button>
+</div>
+
+<div class="riwayat">
+  <div class="riwayat-list" id="riwayatList"></div>
+</div>
+
+<div class="saldo-box" id="saldoTotalBox">
+  Total Saldo: Rp <span id="saldoAngka">0</span>
+</div>
+
+<script>
+  let dataDone = JSON.parse(localStorage.getItem("dataDone")) || [];
+
+  function resetKolom() {
+    document.getElementById("besar").value = '';
+    document.getElementById("hari").value = '';
+    document.getElementById("target").value = '';
+    localStorage.removeItem("formInput");
+    updateDropdown();
+  }
+
+  function updateDropdown() {
+    const hari = parseInt(document.getElementById("hari").value) || 0;
+    const dropdown = document.getElementById("doneHari");
+    dropdown.innerHTML = `<option value="">-</option>`;
+    
+    const hariTerakhir = dataDone.length;
+    if (hari > 0 && hariTerakhir < hari) {
+      dropdown.innerHTML += `<option value="${hariTerakhir + 1}">Hari ke-${hariTerakhir + 1}</option>`;
+    } else {
+      dropdown.innerHTML += `<option value="">Selesai ✅</option>`;
+    }
+  }
+
+  function simpanDone() {
+    const besar = parseInt(document.getElementById("besar").value) || 0;
+    const hari = parseInt(document.getElementById("hari").value) || 0;
+    const target = parseInt(document.getElementById("target").value) || 0;
+    const hariKe = parseInt(document.getElementById("doneHari").value);
+
+    const totalSaldo = dataDone.reduce((sum, item) => sum + item.saldo, 0);
+
+    if (!hariKe) return alert("Pilih Hari ke-berapa terlebih dahulu.");
+    if (hariKe !== dataDone.length + 1) return alert(`Harus urut. Sekarang harus Hari ke-${dataDone.length + 1}`);
+    if (totalSaldo + besar > target) return alert("Total saldo melebihi target!");
+
+    const saldo = besar;
+    dataDone.push({ hariKe, saldo });
+    localStorage.setItem("dataDone", JSON.stringify(dataDone));
+
+    simpanInputForm(); // simpan input juga
+    updateDropdown();
+    tampilkanRiwayat();
+    updateTotal();
+  }
+
+  function tampilkanRiwayat() {
+    const riwayatDiv = document.getElementById("riwayatList");
+    riwayatDiv.innerHTML = "";
+
+    [...dataDone].reverse().forEach((item, i) => {
+      const idx = dataDone.length - 1 - i;
+      const div = document.createElement("div");
+      div.className = "riwayat-item";
+      div.innerHTML = `
+        <div><strong>Hari ke-${item.hariKe}</strong> • Rp ${item.saldo.toLocaleString('id-ID')}</div>
+        <button class="btn-danger" onclick="hapusRiwayat(${idx})">Hapus</button>
+      `;
+      riwayatDiv.appendChild(div);
+    });
+  }
+
+  function hapusRiwayat(index) {
+    dataDone.splice(index, 1);
+    localStorage.setItem("dataDone", JSON.stringify(dataDone));
+    tampilkanRiwayat();
+    updateDropdown();
+    updateTotal();
+  }
+
+  function updateTotal() {
+    const totalSaldo = dataDone.reduce((sum, item) => sum + item.saldo, 0);
+    document.getElementById("saldoAngka").textContent = totalSaldo.toLocaleString('id-ID');
+  }
+
+  function simpanInputForm() {
+    const input = {
+      besar: document.getElementById("besar").value,
+      hari: document.getElementById("hari").value,
+      target: document.getElementById("target").value
+    };
+    localStorage.setItem("formInput", JSON.stringify(input));
+  }
+
+  function loadInputForm() {
+    const input = JSON.parse(localStorage.getItem("formInput"));
+    if (input) {
+      document.getElementById("besar").value = input.besar || '';
+      document.getElementById("hari").value = input.hari || '';
+      document.getElementById("target").value = input.target || '';
+    }
+  }
+
+  // Inisialisasi
+  loadInputForm();
+  updateDropdown();
+  tampilkanRiwayat();
+  updateTotal();
+</script>
+
+</body>
+</html>
