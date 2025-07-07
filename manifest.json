@@ -1,0 +1,15 @@
+{
+  "name": "Target Harian",
+  "short_name": "Target",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4caf50",
+  "icons": [
+    {
+      "src": "https://bankragilgunawan.wordpress.com/wp-content/uploads/2025/06/10000065478764923464499993724.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
